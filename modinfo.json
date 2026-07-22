@@ -1,0 +1,13 @@
+﻿{
+  "type": "code",
+  "name": "Divine Overlay",
+  "modid": "blocksoverlay",
+  "description": "Divine Overlay targets blocks and entities on the HUD",
+  "authors": ["TheSinnerMan"],
+  "version": "4.11.5",
+  "side": "Client",
+  "dependencies": {
+    "game": "1.22.0"
+  }
+}
+

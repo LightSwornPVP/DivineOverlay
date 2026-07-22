@@ -1,0 +1,47 @@
+﻿{
+    "blockselector-dialog-title": "Select Divine Overlay targets",
+    "colorpicker-dialog-title": "Color picker",
+    "label-scan-radius": "Scan radius (blocks)",
+    "label-label-radius": "Label radius (blocks)",
+    "label-search": "Search for a block or entity",
+    "label-search-detail": "Search by asset code for exact matches!",
+    "label-search-button": "Go",
+    "label-saved-groups-button": "Saved groups",
+    "label-search-results": "Results",
+    "label-search-results-with-count": "Results ({0})",
+    "label-active-results": "Active targets",
+    "label-show-entity-rays": "Show entity rays?",
+    "label-show-debug": "Show debug info on overlay?",
+    "label-scan-button": "Scan",
+
+    "label-search-result-single": "{0}",
+    "label-search-result-multiple": "{0} ({1} ids)",
+
+    "placeholder-search": "Block/Entity name or asset code",
+    "placeholder-range": "# Blocks",
+
+    "savedgroups-dialog-title": "Manage saved groups",
+    "rename-dialog-title": "Rename group",
+    "label-select-group": "Select group",
+    "label-rename": "Rename",
+    "label-save": "Save",
+    "label-cancel": "Cancel",
+    "label-delete-group": "Delete group",
+    "label-new-group": "New group",
+    "label-empty-group-list": "&lt;No groups&gt;",
+    "label-move-group-up": "Move selected group up",
+    "label-move-group-down": "Move selected group down",
+
+    "label-scan-error": "Error during scan: {0}",
+    "label-groups-found": "Groups found: {0}",
+    "label-scanstep-scanning-chunks": "Scanning chunks {0} ({1} chunks) ({2})",
+    "label-scanstep-building-groups": "Building block groups {0} ({1} blocks) ({2})",
+    "label-scanstep-generate-mesh": "Rebuilding block mesh {0} ({1} groups) ({2})",
+    "label-scanstep-hollowing-groups": "Hollowing large groups {0} ({1} groups) ({2})",
+    "label-searching-for-things": "Searching for {0} {1}:",
+    "label-thing": "thing",
+    "label-things": "things",
+
+    "keybind-show-overlay": "Show Divine Overlay",
+    "keybind-show-selector": "Open Divine Overlay selector"
+}
