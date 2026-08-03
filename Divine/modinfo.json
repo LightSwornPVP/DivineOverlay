@@ -1,0 +1,13 @@
+{
+  "type": "code",
+  "modid": "divine",
+  "name": "Divine",
+  "authors": [ "TheSinnerMan", "Kathanon" ],
+  "description": "Client-side crosshair target indicator, automatic resource pickup waypointing, Divine Sight, integrated storage organization based on Chest Organizer, and Divine Overlay companion support.",
+  "version": "0.2.24",
+  "dependencies": {
+    "game": "1.22.3",
+    "blocksoverlay": "4.11.6"
+  },
+  "side": "Client"
+}
