@@ -11,6 +11,20 @@ The companion Divine mod source is maintained in [`Divine/`](Divine/). Divine
 provides combat indicators, resource waypoints, Divine Sight, storage tools,
 and the `/divine` settings interface.
 
+## Installation
+
+Divine and Divine Overlay remain two separate mods because they use different
+mod IDs, assets, and configuration files. Install them using either option:
+
+- **One download:** download `Divine-and-DivineOverlay-0.2.24.zip`, extract it,
+  and place both `Divine.zip` and `DivineOverlay.zip` in the game's `Mods`
+  folder.
+- **Separate downloads:** place `Divine-0.2.24.zip` and
+  `DivineOverlay-4.11.6.zip` directly in the `Mods` folder.
+
+Do not place the outer one-download bundle itself in `Mods`; extract its two
+mod ZIPs first.
+
 Default hotkeys:
 
 - `]` toggles the overlay.

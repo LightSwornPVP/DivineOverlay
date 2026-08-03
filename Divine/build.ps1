@@ -1,10 +1,17 @@
 param(
-    [string]$VintageStoryInstall = "C:\Program Files\Vintage Story"
+    [string]$VintageStoryInstall = "C:\Program Files\Vintage Story",
+    [string]$DotNetRoot = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-$sdkRoot = Join-Path $env:ProgramFiles "dotnet\sdk"
+$dotnetBase = if ([string]::IsNullOrWhiteSpace($DotNetRoot)) {
+    Join-Path $env:ProgramFiles "dotnet"
+} else {
+    $DotNetRoot
+}
+$dotnetCommand = Join-Path $dotnetBase "dotnet.exe"
+$sdkRoot = Join-Path $dotnetBase "sdk"
 $sdk = Get-ChildItem $sdkRoot -Directory |
     Where-Object { $_.Name -like "10.*" } |
     Sort-Object { [version]$_.Name } -Descending |
@@ -15,7 +22,11 @@ if ($null -eq $compiler) {
     throw "Could not find the .NET 10 C# compiler. Install the .NET 10 SDK, then try again."
 }
 
-$runtimeRoot = Join-Path $env:ProgramFiles "dotnet\shared\Microsoft.NETCore.App"
+if (!(Test-Path $dotnetCommand)) {
+    throw "Could not find dotnet.exe in: $dotnetBase"
+}
+
+$runtimeRoot = Join-Path $dotnetBase "shared\Microsoft.NETCore.App"
 $runtime = Get-ChildItem $runtimeRoot -Directory |
     Where-Object { $_.Name -like "10.*" } |
     Sort-Object { [version]$_.Name } -Descending |
@@ -87,7 +98,7 @@ if (Test-Path $chestOrganizerSource) {
 }
 $outputDll = Join-Path $releaseDir "Divine.dll"
 
-dotnet $compiler.FullName -nologo -target:library -langversion:latest -nullable:enable -nowarn:8600,8601,8602,8603,8604,8618,8625,8632,8767 -out:$outputDll @references @sources
+& $dotnetCommand $compiler.FullName -nologo -target:library -langversion:latest -nullable:enable -nowarn:8600,8601,8602,8603,8604,8618,8625,8632,8767 -out:$outputDll @references @sources
 if ($LASTEXITCODE -ne 0) {
     throw "Compile failed."
 }
