@@ -1,6 +1,7 @@
 ﻿{
     "blockselector-dialog-title": "Select Divine Overlay targets",
     "colorpicker-dialog-title": "Color picker",
+    "label-opacity": "Opacity (%)",
     "label-scan-radius": "Scan radius (blocks)",
     "label-label-radius": "Label radius (blocks)",
     "label-search": "Search for a block or entity",
