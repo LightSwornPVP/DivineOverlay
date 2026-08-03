@@ -7,10 +7,6 @@ the upstream `blocksoverlay` mod ID for compatibility.
 This package changes the visible name and English UI labels only. The overlay
 implementation is the official Block Overlay 4.11.6 binary.
 
-The companion Divine mod source is maintained in [`Divine/`](Divine/). Divine
-provides combat indicators, resource waypoints, Divine Sight, storage tools,
-and the `/divine` settings interface.
-
 Default hotkeys:
 
 - `]` toggles the overlay.
