@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.25
+
+- Create ore waypoints from natural ore block breaks and native surface-bit
+  collections instead of broad inventory increases.
+- Ignore crafted, smashed, dropped, and repeatedly picked-up ore chunks and
+  nuggets when creating waypoints.
+- Require nearby world-pickup confirmation for resin and clay inventory gains.
+- Fix right-click nearby-container auto-merge initialization and reach checks.
+- Exclude GUI-less containers such as aged crates from automatic merging to
+  prevent visual and inventory duplication bugs.
+- Release Divine and the branded Divine Overlay companion as version 0.2.25.
+
 ## 0.2.24
 
 - Replace the broad inventory count refresh with per-slot resource tracking.

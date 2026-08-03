@@ -17,9 +17,9 @@ if (![string]::IsNullOrWhiteSpace($DotNetRoot)) {
 $dist = Join-Path $PSScriptRoot "dist"
 New-Item -ItemType Directory -Force $dist | Out-Null
 
-$divinePackage = Join-Path $dist "Divine-0.2.24.zip"
-$overlayPackage = Join-Path $dist "DivineOverlay-4.11.6.zip"
-$bundlePackage = Join-Path $dist "Divine-and-DivineOverlay-0.2.24.zip"
+$divinePackage = Join-Path $dist "Divine-0.2.25.zip"
+$overlayPackage = Join-Path $dist "DivineOverlay-0.2.25.zip"
+$bundlePackage = Join-Path $dist "Divine-and-DivineOverlay-0.2.25.zip"
 
 foreach ($path in @($divinePackage, $overlayPackage, $bundlePackage)) {
     if (Test-Path $path) {

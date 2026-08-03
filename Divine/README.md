@@ -6,7 +6,8 @@ Divine is a client-side Vintage Story mod project with these features:
 - Adjustable visual target assist that keeps the indicator forgiving when your aim slips.
 - Combat readability options for target name, target distance, hit-ready pulse, low-health color, hostile-only mode, combat-only mode, and optional sound cue.
 - Target health tags with a health bar and current/max HP for the thing you are fighting.
-- Automatic waypoints when your inventory gains ore bits, resin, or clay.
+- Source-based resource waypoints for natural ore blocks and native surface
+  bits, plus pickup-confirmed resin and clay markers.
 - Divine Sight brightness control.
 - Integrated storage organization based on Chest Organizer by Kathanon.
 - Bundled Divine Overlay support using the included Block Overlay release package.
@@ -29,7 +30,10 @@ If `vendor\blockoverlay-4.11.6.zip` is present, the build script creates a compa
 
 ## Notes
 
-The pickup waypoint feature uses the normal `/waypoint addati` command, so it behaves like a player-created waypoint. It marks the player's position when the item count increase is detected.
+The waypoint feature uses the normal `/waypoint addati` command, so every mark
+behaves like a player-created waypoint. Ore markers are created once from a
+natural ore block break or native surface-bit collection. Crafting, smashing,
+dropping, and re-picking processed ore do not create ore markers.
 
 The integrated storage organization code is based on Chest Organizer by Kathanon under the BSD 2-Clause license. The license text is included in packaged builds as `ChestOrganizer-LICENSE.txt`.
 

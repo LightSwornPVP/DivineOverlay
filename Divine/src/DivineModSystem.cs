@@ -19,8 +19,13 @@ public sealed class DivineModSystem : ModSystem
     private readonly Dictionary<string, List<WaypointMemory>> waypointHistoryByResource = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<InventoryBase, Action<int>> inventorySubscriptions = new();
     private readonly Dictionary<InventoryBase, Dictionary<int, string?>> slotCodesByInventory = new();
+    private readonly List<NaturalPickupEvidence> recentNaturalPickups = new();
+    private readonly List<PendingInventoryPickup> pendingInventoryPickups = new();
     private bool pickupTrackingReady;
     private long pickupInitListenerId;
+
+    private const long NaturalPickupMatchWindowMs = 1500;
+    private const double NaturalPickupMaxDistance = 4.0;
 
     public override bool ShouldLoad(EnumAppSide side) => side == EnumAppSide.Client;
 
@@ -33,6 +38,9 @@ public sealed class DivineModSystem : ModSystem
         renderer = new CrosshairIndicatorRenderer(api, config);
         api.Event.RegisterRenderer(renderer, EnumRenderStage.Ortho, "divine-crosshair");
         api.Event.RegisterRenderer(renderer, EnumRenderStage.AfterFinalComposition, "divine-target-overlay");
+        api.Event.OnEntityDespawn += OnEntityDespawn;
+        api.Event.OnPlayerBrokenBlock += OnPlayerBrokenResourceBlock;
+        api.Event.BlockChanged += OnBlockChanged;
         pickupInitListenerId = api.Event.RegisterGameTickListener(EnsurePickupTrackingReady, 1000);
 
         settingsDialog = new DivineSettingsDialog(api, config, SaveConfig);
@@ -94,6 +102,13 @@ public sealed class DivineModSystem : ModSystem
         {
             capi.Event.UnregisterGameTickListener(pickupInitListenerId);
             pickupInitListenerId = 0;
+        }
+
+        if (capi != null)
+        {
+            capi.Event.OnEntityDespawn -= OnEntityDespawn;
+            capi.Event.OnPlayerBrokenBlock -= OnPlayerBrokenResourceBlock;
+            capi.Event.BlockChanged -= OnBlockChanged;
         }
 
         foreach ((InventoryBase inventory, Action<int> handler) in inventorySubscriptions)
@@ -313,9 +328,119 @@ public sealed class DivineModSystem : ModSystem
         knownCounts[path] = currentCount;
 
         if (currentCount <= previousCount) return;
+        if (!IsNaturalPickupDestination(inventory)) return;
 
         ResourceKind kind = GetResourceKind(path, name);
-        TryCreateWaypoint(new PickupSnapshot(path, BuildResourceTitle(path, name, kind), currentCount, kind));
+        PickupSnapshot snapshot = new(path, BuildResourceTitle(path, name, kind), currentCount, kind);
+        long now = capi.ElapsedMilliseconds;
+        RemoveExpiredPickupMatches(now);
+        pendingInventoryPickups.Add(new PendingInventoryPickup(snapshot, now));
+        TryMatchNaturalPickup();
+    }
+
+    private static bool IsNaturalPickupDestination(InventoryBase inventory)
+    {
+        return inventory.ClassName.Equals(GlobalConstants.hotBarInvClassName, StringComparison.OrdinalIgnoreCase)
+            || inventory.ClassName.Equals(GlobalConstants.backpackInvClassName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void OnPlayerBrokenResourceBlock(BlockDamage damage)
+    {
+        if (capi == null || damage?.Block?.Code?.Path == null || damage.Position == null) return;
+        if (damage.ByPlayer != capi.World.Player) return;
+
+        Block block = damage.Block;
+        if (!block.Code.Path.StartsWith("ore-", StringComparison.OrdinalIgnoreCase)) return;
+
+        string resourceCode = GetNaturalOreResourceCode(block);
+        string name = block.GetPlacedBlockName(capi.World, damage.Position);
+        string title = BuildResourceTitle(resourceCode, name, ResourceKind.Ore);
+        Vec3d position = damage.Position.ToVec3d().Add(0.5, 0.5, 0.5);
+        TryCreateWaypoint(new PickupSnapshot(resourceCode, title, 1, ResourceKind.Ore), position);
+    }
+
+    private void OnBlockChanged(BlockPos pos, Block oldBlock)
+    {
+        if (capi?.World?.Player == null || pos == null || oldBlock?.Code?.Path == null) return;
+        if (!oldBlock.Code.Path.StartsWith("looseores-", StringComparison.OrdinalIgnoreCase)) return;
+
+        BlockSelection? selection = capi.World.Player.CurrentBlockSelection;
+        if (selection?.Position == null || !selection.Position.Equals(pos)) return;
+
+        long now = capi.ElapsedMilliseconds;
+        RemoveExpiredPickupMatches(now);
+        recentNaturalPickups.Add(new NaturalPickupEvidence(
+            null,
+            ResourceKind.Ore,
+            pos.ToVec3d().Add(0.5, 0.5, 0.5),
+            now));
+        TryMatchNaturalPickup();
+    }
+
+    private static string GetNaturalOreResourceCode(Block block)
+    {
+        if (block.Variant != null && block.Variant.TryGetValue("type", out string? type) && !string.IsNullOrWhiteSpace(type))
+        {
+            return $"naturalore-{type}";
+        }
+
+        return $"naturalore-{block.Code.Path}";
+    }
+
+    private void OnEntityDespawn(Entity entity, EntityDespawnData reasonData)
+    {
+        if (capi?.World?.Player?.Entity == null || reasonData?.Reason != EnumDespawnReason.PickedUp) return;
+        if (entity is not EntityItem itemEntity || itemEntity.Itemstack == null) return;
+
+        ItemStack stack = itemEntity.Itemstack;
+        string? path = stack.Collectible?.Code?.Path;
+        if (path == null || !IsTracked(path, stack.GetName())) return;
+        ResourceKind kind = GetResourceKind(path, stack.GetName());
+        if (kind == ResourceKind.Ore) return;
+
+        Vec3d pickupPosition = entity.Pos.XYZ;
+        if (pickupPosition.DistanceTo(capi.World.Player.Entity.Pos.XYZ) > NaturalPickupMaxDistance) return;
+
+        long now = capi.ElapsedMilliseconds;
+        RemoveExpiredPickupMatches(now);
+        recentNaturalPickups.Add(new NaturalPickupEvidence(
+            path,
+            kind,
+            pickupPosition.Clone(),
+            now));
+        TryMatchNaturalPickup();
+    }
+
+    private void TryMatchNaturalPickup()
+    {
+        if (capi == null) return;
+
+        long now = capi.ElapsedMilliseconds;
+        RemoveExpiredPickupMatches(now);
+        for (int pendingIndex = pendingInventoryPickups.Count - 1; pendingIndex >= 0; pendingIndex--)
+        {
+            PendingInventoryPickup pending = pendingInventoryPickups[pendingIndex];
+            for (int evidenceIndex = recentNaturalPickups.Count - 1; evidenceIndex >= 0; evidenceIndex--)
+            {
+                NaturalPickupEvidence evidence = recentNaturalPickups[evidenceIndex];
+                bool matches = evidence.Code == null
+                    ? pending.Snapshot.Kind == evidence.Kind
+                    : pending.Snapshot.Code.Equals(evidence.Code, StringComparison.OrdinalIgnoreCase);
+                if (!matches) continue;
+                if (Math.Abs(pending.CreatedAtMs - evidence.CreatedAtMs) > NaturalPickupMatchWindowMs) continue;
+
+                recentNaturalPickups.RemoveAt(evidenceIndex);
+                pendingInventoryPickups.RemoveAt(pendingIndex);
+                TryCreateWaypoint(pending.Snapshot, evidence.Position.Clone());
+                break;
+            }
+        }
+    }
+
+    private void RemoveExpiredPickupMatches(long now)
+    {
+        recentNaturalPickups.RemoveAll(evidence => now - evidence.CreatedAtMs > NaturalPickupMatchWindowMs);
+        pendingInventoryPickups.RemoveAll(pending => now - pending.CreatedAtMs > NaturalPickupMatchWindowMs);
     }
 
     private long CountMatchingItems(string itemCodePath)
@@ -405,14 +530,14 @@ public sealed class DivineModSystem : ModSystem
         }
     }
 
-    private void TryCreateWaypoint(PickupSnapshot snapshot)
+    private void TryCreateWaypoint(PickupSnapshot snapshot, Vec3d discoveredAt)
     {
         if (capi == null) return;
 
         EntityPlayer? entity = capi.World.Player.Entity;
         if (entity == null) return;
 
-        Vec3d pos = entity.Pos.XYZ;
+        Vec3d pos = discoveredAt;
         long now = capi.ElapsedMilliseconds;
         if (!waypointHistoryByResource.TryGetValue(snapshot.Code, out List<WaypointMemory>? history))
         {
@@ -615,6 +740,34 @@ public sealed class DivineModSystem : ModSystem
         public WaypointMemory(Vec3d position, long createdAtMs)
         {
             Position = position;
+            CreatedAtMs = createdAtMs;
+        }
+    }
+
+    private sealed class NaturalPickupEvidence
+    {
+        public readonly string? Code;
+        public readonly ResourceKind Kind;
+        public readonly Vec3d Position;
+        public readonly long CreatedAtMs;
+
+        public NaturalPickupEvidence(string? code, ResourceKind kind, Vec3d position, long createdAtMs)
+        {
+            Code = code;
+            Kind = kind;
+            Position = position;
+            CreatedAtMs = createdAtMs;
+        }
+    }
+
+    private sealed class PendingInventoryPickup
+    {
+        public readonly PickupSnapshot Snapshot;
+        public readonly long CreatedAtMs;
+
+        public PendingInventoryPickup(PickupSnapshot snapshot, long createdAtMs)
+        {
+            Snapshot = snapshot;
             CreatedAtMs = createdAtMs;
         }
     }

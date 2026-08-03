@@ -16,14 +16,25 @@ and the `/divine` settings interface.
 Divine and Divine Overlay remain two separate mods because they use different
 mod IDs, assets, and configuration files. Install them using either option:
 
-- **One download:** download `Divine-and-DivineOverlay-0.2.24.zip`, extract it,
+- **One download:** download `Divine-and-DivineOverlay-0.2.25.zip`, extract it,
   and place both `Divine.zip` and `DivineOverlay.zip` in the game's `Mods`
   folder.
-- **Separate downloads:** place `Divine-0.2.24.zip` and
-  `DivineOverlay-4.11.6.zip` directly in the `Mods` folder.
+- **Separate downloads:** place `Divine-0.2.25.zip` and
+  `DivineOverlay-0.2.25.zip` directly in the `Mods` folder.
 
 Do not place the outer one-download bundle itself in `Mods`; extract its two
 mod ZIPs first.
+
+## Version 0.2.25
+
+- Resource waypoints now trigger from the natural source instead of every
+  inventory increase.
+- Breaking a natural ore block creates one discovery marker.
+- Picking up a selected native surface ore bit creates one discovery marker.
+- Crafting or smashing ore chunks into nuggets, dropping ore, and repeatedly
+  picking up processed ore no longer create markers.
+- Nearby storage auto-merge now initializes correctly, uses consistent vanilla
+  reach checks, and excludes GUI-less containers such as aged crates.
 
 Default hotkeys:
 

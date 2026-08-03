@@ -189,6 +189,7 @@ if ($useRepositoryOverlay -or (Test-Path $blockOverlayZip)) {
         $info.name = "Divine Overlay"
         $info.description = "Divine Overlay targets blocks and entities on the HUD. Based on Block Overlay by Xel."
         $info.authors = @("TheSinnerMan")
+        $info.version = "0.2.25"
         if ($null -eq $info.contributors) {
             $info | Add-Member -NotePropertyName contributors -NotePropertyValue @("Xel (upstream Block Overlay)")
         }
