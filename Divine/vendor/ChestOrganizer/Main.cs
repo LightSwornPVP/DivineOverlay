@@ -25,6 +25,7 @@ public class Main : ModSystem {
     public override void StartClientSide(ICoreClientAPI api) {
         this.api = api;
         Patch_ChestDialog.Setup(api);
+        Patch_RightClickOpenAll.Setup(api, OpenAllInRange, IsRightClickOpenAllEnabled);
         Icons.Setup(api);
 
         api.Input.RegisterHotKey(
@@ -40,17 +41,16 @@ public class Main : ModSystem {
         if (player.WorldData.CurrentGameMode == EnumGameMode.Creative) return false;
         var reinforcement = api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
 
-        float range = player.WorldData.PickingRange;
-        float rangesq = range * range;
-        var eyePos = player.Entity.Pos.XYZ.Add(player.Entity.LocalEyePos - 0.5f);
+        float range = player.WorldData.PickingRange + 0.5f;
+        var eyePos = GetPlayerEyePosition(player);
         var accessor = api.World.BlockAccessor;
         List<BlockEntity> chests = new();
 
         if (clickedSelection?.Position != null && !api.OpenedGuis.OfType<GuiDialogBlockEntityInventory>().Any(dialog => dialog.BlockEntityPosition == clickedSelection.Position))
         {
             var clicked = accessor.GetBlockEntity(clickedSelection.Position);
-            if (clicked?.FindInventory() != null
-                && IsWithinReach(clickedSelection.Position, eyePos, rangesq)
+            if (clicked.CanAutoMerge()
+                && IsWithinReach(clickedSelection.Position, player)
                 && !reinforcement.IsLockedForInteract(clickedSelection.Position, player))
             {
                 chests.Add(clicked);
@@ -64,10 +64,10 @@ public class Main : ModSystem {
 
         void Step(Block b, int x, int y, int z) {
             BlockPos pos = new(x, y, z);
-            if (!IsWithinReach(pos, eyePos, rangesq)) return;
+            if (!IsWithinReach(pos, player)) return;
             var entity = accessor.GetBlockEntity(pos);
             bool locked = reinforcement.IsLockedForInteract(pos, player);
-            if (!locked && entity?.FindInventory() != null && !chests.Contains(entity)) {
+            if (!locked && entity.CanAutoMerge() && !chests.Contains(entity)) {
                 chests.Add(entity);
             }
         }
@@ -80,14 +80,14 @@ public class Main : ModSystem {
         return dx * dx + dy * dy + dz * dz;
     }
 
-    private static bool IsWithinReach(BlockPos pos, Vec3d eyePos, float rangesq) {
-        double nearestX = GameMath.Clamp(eyePos.X, pos.X, pos.X + 1);
-        double nearestY = GameMath.Clamp(eyePos.Y, pos.Y, pos.Y + 1);
-        double nearestZ = GameMath.Clamp(eyePos.Z, pos.Z, pos.Z + 1);
-        double dx = eyePos.X - nearestX;
-        double dy = eyePos.Y - nearestY;
-        double dz = eyePos.Z - nearestZ;
-        return dx * dx + dy * dy + dz * dz <= rangesq;
+    internal static Vec3d GetPlayerEyePosition(IPlayer player) {
+        return player.Entity.Pos.XYZ.Add(player.Entity.LocalEyePos);
+    }
+
+    internal static bool IsWithinReach(BlockPos pos, IPlayer player) {
+        double range = player.WorldData.PickingRange + 0.5;
+        Vec3d eyePos = GetPlayerEyePosition(player);
+        return ChestDistanceSq(pos, eyePos) <= range * range;
     }
 
     private bool IsRightClickOpenAllEnabled() {

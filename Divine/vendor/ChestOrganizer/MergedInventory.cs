@@ -74,6 +74,7 @@ public class MergedInventory : InventoryBase {
     }
 
     public void Add(BlockEntityOpenableContainer container) {
+        if (!container.CanAutoMerge()) return;
         AddPart(new(this, container, api, count), true);
         UpdateDialog(api);
     }
@@ -82,7 +83,7 @@ public class MergedInventory : InventoryBase {
         int n = count;
         int openIndex = 0;
         foreach (var container in containers) {
-            if (container?.FindInventory() == null) continue;
+            if (!container.CanAutoMerge()) continue;
 
             var part = new IncludedInventory(this, container, api, count);
             if (AddPart(part, false)) {
@@ -146,6 +147,8 @@ public class MergedInventory : InventoryBase {
     }
 
     private bool HandleServerPacket(BlockEntityOpenableContainer container, int id) {
+        if (!container.CanAutoMerge()) return false;
+
         long time = api.InWorldEllapsedMilliseconds;
         if (time - lastPacketTime < 10L && id == lastPacketId && container.Pos.Equals(lastPacketPos)) return true;
         lastPacketTime = time;

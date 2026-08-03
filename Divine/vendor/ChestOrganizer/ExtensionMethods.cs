@@ -46,6 +46,15 @@ public static class ExtensionMethods {
         return null;
     }
 
+    public static bool CanAutoMerge(this BlockEntity self) {
+        // Range merging sends container-open packets without first creating the
+        // block's normal dialog. Only the standard GUI-backed container entity
+        // types are safe for that path. Crates such as wood-aged expose an
+        // inventory internally but use a non-GUI interaction and must be left
+        // to their vanilla behavior.
+        return self is BlockEntityGenericContainer or BlockEntityGenericTypedContainer;
+    }
+
     public static string FindDialogTitle(this BlockEntity self) {
         if (self is BlockEntityOpenableContainer openable) {
             return openable.GetDialogTitle();

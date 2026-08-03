@@ -21,11 +21,8 @@ public class GuiDialogMergedInventory : GuiDialogGeneric {
 
         // Check for inventories that are out of range.
         var player = capi.World.Player;
-        float range = player.WorldData.PickingRange + 1;
-        float rangesq = range * range;
-        var eyePos = player.Entity.Pos.XYZ.Add(player.Entity.LocalEyePos - 0.5f);
         var toRemove = inventory.ChestPositions
-            .Where(p => p.DistanceSqTo(eyePos.X, eyePos.Y, eyePos.Z) > rangesq)
+            .Where(p => !Main.IsWithinReach(p, player))
             .Select((p, i) => i)
             .Reverse()
             .ToArray();
