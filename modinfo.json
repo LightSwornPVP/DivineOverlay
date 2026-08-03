@@ -2,9 +2,10 @@
   "type": "code",
   "name": "Divine Overlay",
   "modid": "blocksoverlay",
-  "description": "Divine Overlay targets blocks and entities on the HUD",
+  "description": "Divine Overlay targets blocks and entities on the HUD. Based on Block Overlay by Xel.",
   "authors": ["TheSinnerMan"],
-  "version": "4.11.5",
+  "contributors": ["Xel (upstream Block Overlay)"],
+  "version": "4.11.6",
   "side": "Client",
   "dependencies": {
     "game": "1.22.0"
