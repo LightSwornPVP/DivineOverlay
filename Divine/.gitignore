@@ -1,0 +1,10 @@
+bin/
+obj/
+package/
+package-divineoverlay/
+refs/
+.dotnet-appdata/
+.dotnet-home/
+.nuget/
+*.zip
+!vendor/blockoverlay-4.11.6.zip
