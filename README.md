@@ -1,19 +1,13 @@
 # Divine Overlay
 
-Divine Overlay is a client-side Vintage Story companion mod for marking blocks and entities in the world.
+Divine Overlay is the companion overlay package for Divine. It is based on
+[Block Overlay](https://mods.vintagestory.at/show/mod/6178) by Xel and retains
+the upstream `blocksoverlay` mod ID for compatibility.
 
-## Features
+This package changes the visible name and English UI labels only. The overlay
+implementation is the official Block Overlay 4.11.6 binary.
 
-- Search for block or entity targets.
-- Show selected targets as overlays in the world.
-- Save target groups.
-- Adjust scan radius and label radius.
-- Toggle entity rays and debug overlay info.
+Default hotkeys:
 
-## Install
-
-Put `DivineOverlay.zip` in your Vintage Story `Mods` folder.
-
-## Notes
-
-This companion mod uses the `blocksoverlay` mod id for compatibility with the underlying overlay system.
+- `]` toggles the overlay.
+- `Ctrl+]` opens the target selector.
